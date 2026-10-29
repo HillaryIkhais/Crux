@@ -5,9 +5,9 @@
       "id": "rate_property_removed",
       "name": "Removed 'rate' property from rate-limit response",
       "endpoint": "GET /rate_limit",
-      "description": "The `rate` property was removed from the JSON body of the rate-limit response. Rate limit information is now provided exclusively via HTTP headers: RateLimit-Limit, RateLimit-Remaining, and RateLimit-Reset.",
+      "description": "The `rate` property was removed from the JSON body of the rate-limit response. Rate limit information is now provided via `resources.core.remaining` and `resources.core.reset` in the JSON body. GitHub also recommends `x-ratelimit-*` response headers for real-time tracking, treating them as authoritative when they disagree with the endpoint response."
       "old_behavior": "Code reading `rate_limit_json['rate']['remaining']` or `rate.remaining` from the response body",
-      "migration": "Update code to read `RateLimit-Remaining` header from the response instead: `response.headers.get('RateLimit-Remaining')`",
+      "migration": "Update code to read `resources.core.remaining` and `resources.core.reset` from the JSON response body instead of `rate.remaining` and `rate.reset`."
       "verified_impact": "Repositories that parse the rate-limit response JSON for `rate.remaining` will receive a complete rate limit object without the `rate` key, potentially causing KeyError or incorrect limit calculations."
     },
     {

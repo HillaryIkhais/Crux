@@ -12,9 +12,16 @@
       "message": "Success"
     },
     "new_response": {
-      "message": "Rate limit info in headers"
+      "resources": {
+        "core": {
+          "limit": 5000,
+          "remaining": 4300,
+          "used": 700,
+          "reset": 1000
+        }
+      }
     },
-    "migration": "Read RateLimit-Remaining, RateLimit-Limit, RateLimit-Reset headers",
+    "migration": "Update code to read `resources.core.remaining` and `resources.core.reset` from the JSON response body instead of `rate.remaining` and `rate.reset`. GitHub also recommends `x-ratelimit-*` response headers for real-time tracking.",
     "official_source": "GitHub Developer Guide / API changelog"
   },
   "contents_submodule_type": {

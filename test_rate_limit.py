@@ -11,16 +11,16 @@ def old_rate_limit_parser(response):
     remaining = rate_data['remaining']  # Will KeyError if missing
     return remaining
 
-# The NEW parser that reads from headers (post-2026-03-10 compatible)
+# The NEW parser that reads from resources.core in JSON body (post-2026-03-10 compatible)
 def new_rate_limit_parser(response):
-    """Parser compatible with API 2026-03-10 - reads from headers."""
+    """Parser compatible with API 2026-03-10 - reads resources.core from JSON body."""
     remaining = response.headers.get('RateLimit-Remaining', '0')
     return int(remaining) if remaining else 0
 
 
 # Mock response simulating GitHub API 2026-03-10 behavior
 # The 'rate' key is intentionally removed from the JSON body.
-# Rate limit info is provided via HTTP headers only.
+# Rate limit info is now provided via resources.core in the JSON body.
 MOCK_NEW_API = {
     "status_code": 200,
     "json_data": {},  # No 'rate' key - this is the break!

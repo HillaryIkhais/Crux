@@ -41,7 +41,9 @@ test() {
 
 setup_mock() {
     local b64_body
-    b64_body="$(printf '%s' "$3" | base64)"
+    # GNU base64 wraps at 76 columns; BSD/macOS does not. Strip newlines
+    # so the mock-state file stays valid on every platform.
+    b64_body="$(printf '%s' "$3" | base64 | tr -d '\n')"
     printf 'MOCK_CURL_FIXTURE=%s\n' "$1" > "$PROJECT_ROOT/.mock_state"
     printf 'MOCK_CURL_HTTP=%s\n' "$2" >> "$PROJECT_ROOT/.mock_state"
     printf 'MOCK_CURL_BODY_B64=%s\n' "$b64_body" >> "$PROJECT_ROOT/.mock_state"
