@@ -1,0 +1,9 @@
+{
+  "resources": {
+    "core": {
+      "limit": 5000,
+      "used": 500,
+      "reset": 1000
+    }
+  }
+}

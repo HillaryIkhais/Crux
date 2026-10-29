@@ -1,0 +1,66 @@
+{
+  "api_version": "2026-03-10",
+  "changes": [
+    {
+      "id": "rate_property_removed",
+      "name": "Removed 'rate' property from rate-limit response",
+      "endpoint": "GET /rate_limit",
+      "description": "The `rate` property was removed from the JSON body of the rate-limit response. Rate limit information is now provided exclusively via HTTP headers: RateLimit-Limit, RateLimit-Remaining, and RateLimit-Reset.",
+      "old_behavior": "Code reading `rate_limit_json['rate']['remaining']` or `rate.remaining` from the response body",
+      "migration": "Update code to read `RateLimit-Remaining` header from the response instead: `response.headers.get('RateLimit-Remaining')`",
+      "verified_impact": "Repositories that parse the rate-limit response JSON for `rate.remaining` will receive a complete rate limit object without the `rate` key, potentially causing KeyError or incorrect limit calculations."
+    },
+    {
+      "id": "contents_submodule_type",
+      "name": "Repository contents submodule type change",
+      "endpoint": "GET /repos/{owner}/{repo}/contents",
+      "description": "Submodules in the repository contents are now returned with `type='submodule'` instead of `type='file'`. Directories have `type='dir'`, and regular files have `type='file'.",
+      "old_behavior": "Code assuming every directory entry has `type == 'file'` when listing repository contents; git commands parsing the contents response may misidentify submodules as files",
+      "migration": "Always check the `type` field before assuming the entry type; submodules have `type='submodule'` with `content.sha` pointing to the submodule commit, while files have `type='file'` with `content` containing the file content (base64-encoded)",
+      "verified_impact": "Repositories that iterate contents and treat every entry as a file will incorrectly attempt to decode submodule entries as file content, potentially causing base64 decoding errors or missing submodule metadata."
+    },
+    {
+      "id": "workflow_dispatch_response",
+      "name": "Workflow dispatch response changed from 204 to 200",
+      "endpoint": "POST /repos/{owner}/{repo}/dispatches",
+      "description": "The workflow dispatch endpoint now returns HTTP 200 OK with a JSON body containing a `create_status` URL, instead of returning 204 No Content. The response body includes details about the queued workflow run.",
+      "old_behavior": "Code checking `response.status_code == 204` after workflow dispatch; assuming immediate effect without polling the create_status URL",
+      "migration": "Expect HTTP 200 response; parse the `create_status` URL from the response body to check the workflow run status instead of assuming 204 means immediate queue",
+      "verified_impact": "Code that explicitly checks for 204 and proceeds without waiting for the workflow to be processed may miss the queued run or fail to track its status correctly."
+    }
+  ],
+  "test_results": {
+    "total": 4,
+    "passed": 4,
+    "failed": 0,
+    "key_outcome": "All 4 tests pass: baseline confirmed, break confirmed, fix verified, backward compatible"
+  },
+  "downstream_repository": {
+    "name": "jackgkafaty/GitHub_PAT_AUDIT",
+    "file": "scripts/lib.sh",
+    "function": "check_rate_limit()",
+    "impact": "low-quota warnings disabled, waiting behavior disabled",
+    "fallback_old": "999 remaining / 0 reset",
+    "fix": "resources.core.remaining/reset with rate.remaining/reset fallback"
+  },
+  "final_test_results": {
+    "test_rate_limit_py": {
+      "passed": 4,
+      "total": 4
+    },
+    "test_safe_parsing_py": {
+      "passed": 9,
+      "total": 9
+    },
+    "shell_function_tests": {
+      "passed": 10,
+      "total": 10
+    },
+    "total_passed": 23,
+    "total_tests": 23,
+    "all_passing": true,
+    "safe_failure_behavior": "Returns 0 (or empty jq output) instead of 999 on missing/invalid data",
+    "downstream_repo_verified": "jackgkafaty/GitHub_PAT_AUDIT/scripts/lib.sh check_rate_limit()",
+    "all_claims_verified": true
+  }
+}

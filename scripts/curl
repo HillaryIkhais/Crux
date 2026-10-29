@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# CRUX: Mock curl for test harness
+# Intercepts curl calls from check_rate_limit() and returns canned responses
+set -eo pipefail
+
+STATE_FILE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../.mock_state"
+if [[ -f "$STATE_FILE" ]]; then
+    source "$STATE_FILE"
+fi
+
+# Write mock body to the temp file that check_rate_limit reads
+if [[ -n "${MOCK_CURL_BODY_B64:-}" ]]; then
+    echo "$MOCK_CURL_BODY_B64" | base64 -d > "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../.mock_rate_limit.json" 2>/dev/null
+elif [[ -n "${MOCK_CURL_BODY:-}" ]]; then
+    echo "$MOCK_CURL_BODY" > "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../.mock_rate_limit.json"
+fi
+
+# Return mock HTTP code
+echo "${MOCK_CURL_HTTP:-200}"
+
+# Clear state
+rm -f "$STATE_FILE"

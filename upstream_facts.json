@@ -1,0 +1,42 @@
+{
+  "rate_property_removed": {
+    "change": "rate property removed from rate-limit response",
+    "version": "2026-03-10",
+    "endpoint": "GET /rate_limit",
+    "old_response": {
+      "rate": {
+        "limit": 5000,
+        "remaining": 4500,
+        "used": 500
+      },
+      "message": "Success"
+    },
+    "new_response": {
+      "message": "Rate limit info in headers"
+    },
+    "migration": "Read RateLimit-Remaining, RateLimit-Limit, RateLimit-Reset headers",
+    "official_source": "GitHub Developer Guide / API changelog"
+  },
+  "contents_submodule_type": {
+    "change": "submodules return type='submodule' instead of type='file'",
+    "version": "2026-03-10",
+    "endpoint": "GET /repos/{owner}/{repo}/contents",
+    "old_behavior": "Assume type=='file' for all entries",
+    "new_behavior": "Always check type field: 'submodule', 'dir', or 'file'",
+    "migration": "Check type field; submodules have content.sha for commit hash",
+    "official_source": "GitHub API documentation"
+  },
+  "workflow_dispatch_response": {
+    "change": "dispatch changed from 204 to 200 with create_status",
+    "version": "2026-03-10",
+    "endpoint": "POST /repos/{owner}/{repo}/dispatches",
+    "old_response": 204,
+    "new_response": 200,
+    "new_response_body": {
+      "create_status": "https://api.github.com/...",
+      "status": "queued"
+    },
+    "migration": "Expect 200; parse create_status URL to check run status",
+    "official_source": "GitHub API changelog"
+  }
+}

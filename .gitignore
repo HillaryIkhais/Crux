@@ -1,0 +1,14 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.env
+
+# Test artifacts
+.mock_rate_limit.json
+.mock_state
+.mock_stderr
+
+# OS
+.DS_Store
