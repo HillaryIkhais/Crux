@@ -36,8 +36,8 @@ All tests below pass against mocked API responses (no real network calls):
 4 passed in 0.01s
   ▸ test_old_parser_with_old_api_works   → baseline confirmed (4500)
   ▸ test_old_parser_with_new_api_fails   → CRUX CONFIRMED (KeyError)
-  ▸ test_new_parser_with_new_api_works   → FIX VERIFIED (4300)
-  ▸ test_new_parser_with_old_api_works   → BACKWARD COMPATIBLE (4500)
+  ▸ test_new_parser_with_new_api_works   → FIX VERIFIED (4300 from resources.core)
+  ▸ test_new_parser_with_old_api_works   → BACKWARD COMPATIBLE (4500 from rate)
 ```
 
 ### jq expression tests (`test_safe_parsing.py`)
@@ -118,11 +118,31 @@ fi
 - `crux/scripts/lib.sh` — fixed production code
 
 ## Known Limitations
-- Direct live API testing not performed (requires authentication/PAT)
-- Tests use mocked JSON fixtures derived from GitHub's official documentation
-- Full integration into the shell script verified via jq expression tests; actual shell `check_rate_limit()` invocation against live API not possible without credentials
-- The downstream repository (`jackgkafaty/GitHub_PAT_AUDIT`) was cloned and inspected; the fix shown is the *recommended* fix pattern, not yet committed to that repository
-- This is a **confirmed code behavior analysis** based on the actual `scripts/lib.sh` source, not a live production incident
+
+**Important scope statement:** This is a **confirmed code behavior analysis** based on the actual `scripts/lib.sh` source code, not a live production incident.
+
+1. **No live API testing**: Tests use mocked JSON fixtures derived from GitHub's official documentation. No authenticated API calls were made to GitHub's rate-limit endpoint.
+
+2. **Mocked responses**: The pytest and shell tests use mock responses to simulate API behavior. This validates the parsing logic but does not prove the fix works against GitHub's live API.
+
+3. **Downstream fix not committed**: The downstream repository (`jackgkafaty/GitHub_PAT_AUDIT`) was inspected and analyzed. The fix shown in `scripts/lib.sh` is the *recommended* fix pattern, not yet committed to that repository.
+
+4. **Fix scope**: The repair addresses `check_rate_limit()` parsing of `rate.remaining`/`rate.reset` fields. Other functions in `lib.sh` may have similar issues that are out of scope for this analysis.
+
+5. **Single change documented**: This analysis focuses on the `rate` property removal from `GET /rate_limit`. Other breaking changes in API version 2026-03-10 (e.g., submodule type, workflow dispatch response) are not analyzed.
 
 ## Conclusion
-CRUX successfully identifies a real downstream impact of GitHub API 2026-03-10: the `jackgkafaty/GitHub_PAT_AUDIT` tool's `check_rate_limit()` function silently disables low-quota warnings because `.rate.remaining` falls back to `999` when the `rate` key is removed. The fix—preferring `resources.core.remaining/reset` with `rate` fallback and `// empty` (fail-safe) instead of `// 999`—restores intended functionality while maintaining backward compatibility.
+CRUX identifies a real downstream impact of GitHub API 2026-03-10: the `jackgkafaty/GitHub_PAT_AUDIT` tool's `check_rate_limit()` function silently disables low-quota warnings because `.rate.remaining` falls back to `999` when the `rate` key is removed. The fix—preferring `resources.core.remaining/reset` with `rate` fallback and `// empty` (fail-safe) instead of `// 999`—restores intended functionality while maintaining backward compatibility.
+
+**What CRUX demonstrates:**
+- Official API change verified against GitHub documentation
+- Real downstream code identified and analyzed
+- Failure mechanism reproduced with mocked responses
+- Backward-compatible repair implemented and tested
+- 23/23 tests passing across three suites
+
+**What CRUX does NOT demonstrate:**
+- Live production incident (this is code analysis, not incident response)
+- Fix committed to downstream repository
+- Live API integration testing
+- Other breaking changes in API version 2026-03-10
